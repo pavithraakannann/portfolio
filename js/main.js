@@ -104,4 +104,77 @@
     });
   }, { threshold: 0.12 });
   revealTargets.forEach((el) => observer.observe(el));
+
+  // Stagger siblings within a row
+  document.querySelectorAll("section .row").forEach((row) => {
+    row.querySelectorAll(":scope > * > .card").forEach((card, i) => {
+      card.style.setProperty("--i", i % 6);
+    });
+  });
+
+  // Scroll progress + active nav link
+  const progress = document.getElementById("scrollProgress");
+  const sections = document.querySelectorAll("section[id], header[id]");
+  const navLinks = document.querySelectorAll(".navbar .nav-link[href^='#']");
+  const onScroll = () => {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    progress.style.width = `${max > 0 ? (window.scrollY / max) * 100 : 0}%`;
+    let current = "";
+    sections.forEach((sec) => {
+      if (window.scrollY >= sec.offsetTop - 140) current = sec.id;
+    });
+    navLinks.forEach((link) => {
+      link.classList.toggle("active", link.getAttribute("href") === `#${current}`);
+    });
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  // Count-up stats
+  const counters = document.querySelectorAll(".counter");
+  const countObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      const target = parseFloat(el.dataset.target);
+      const decimals = parseInt(el.dataset.decimals || "0", 10);
+      const duration = 1400;
+      const start = performance.now();
+      const step = (now) => {
+        const t = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - t, 3);
+        el.textContent = (target * eased).toFixed(decimals);
+        if (t < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+      countObserver.unobserve(el);
+    });
+  }, { threshold: 0.5 });
+  counters.forEach((el) => countObserver.observe(el));
+
+  // 3D tilt + spotlight on cards and hero avatar
+  const fineepointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  if (fineepointer) {
+    document.querySelectorAll(".skill-card, .project-card, .stat-card, .edu-card, .contact-card")
+      .forEach((card) => card.setAttribute("data-tilt", ""));
+    document.querySelectorAll("[data-tilt]").forEach((el) => {
+      el.addEventListener("mousemove", (e) => {
+        const r = el.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width;
+        const y = (e.clientY - r.top) / r.height;
+        el.style.setProperty("--mx", `${x * 100}%`);
+        el.style.setProperty("--my", `${y * 100}%`);
+        el.style.setProperty("--ry", `${(x - 0.5) * 10}deg`);
+        el.style.setProperty("--rx", `${(0.5 - y) * 10}deg`);
+        if (el.classList.contains("hero-avatar-wrap")) {
+          el.style.transform = `perspective(900px) rotateX(${(0.5 - y) * 14}deg) rotateY(${(x - 0.5) * 14}deg)`;
+        }
+      });
+      el.addEventListener("mouseleave", () => {
+        el.style.setProperty("--rx", "0deg");
+        el.style.setProperty("--ry", "0deg");
+        if (el.classList.contains("hero-avatar-wrap")) el.style.transform = "";
+      });
+    });
+  }
 })();
