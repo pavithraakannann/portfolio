@@ -111,7 +111,11 @@
       form.reset();
       form.classList.remove("was-validated");
     } catch (err) {
-      showToast("Sorry, something went wrong. Please email me directly.", false);
+      const fd = new FormData(form);
+      const subject = encodeURIComponent(`Portfolio message from ${fd.get("name")}`);
+      const body = encodeURIComponent(`${fd.get("message")}\n\nFrom: ${fd.get("name")} <${fd.get("email")}>`);
+      window.location.href = `mailto:pavithraakannann@gmail.com?subject=${subject}&body=${body}`;
+      showToast("Opening your email app to send the message.", true);
     } finally {
       submitBtn.disabled = false;
       submitBtn.innerHTML = submitHtml;
