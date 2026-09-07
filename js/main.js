@@ -78,16 +78,44 @@
 
   // Contact form validation
   const form = document.getElementById("contactForm");
-  const toast = bootstrap.Toast.getOrCreateInstance(document.getElementById("formToast"));
-  form.addEventListener("submit", (e) => {
+  const toastEl = document.getElementById("formToast");
+  const toastBody = document.getElementById("formToastBody");
+  const toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+  const submitBtn = document.getElementById("submitBtn");
+  const submitHtml = submitBtn.innerHTML;
+
+  const showToast = (message, ok) => {
+    toastBody.textContent = message;
+    toastEl.classList.toggle("text-bg-success", ok);
+    toastEl.classList.toggle("text-bg-danger", !ok);
+    toast.show();
+  };
+
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!form.checkValidity()) {
       form.classList.add("was-validated");
       return;
     }
-    toast.show();
-    form.reset();
-    form.classList.remove("was-validated");
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
+    try {
+      const res = await fetch(form.action, {
+        method: "POST",
+        headers: { Accept: "application/json" },
+        body: new FormData(form),
+      });
+      const data = await res.json();
+      if (!res.ok || data.success === "false") throw new Error(data.message || "Request failed");
+      showToast("Thanks! Your message has been sent.", true);
+      form.reset();
+      form.classList.remove("was-validated");
+    } catch (err) {
+      showToast("Sorry, something went wrong. Please email me directly.", false);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = submitHtml;
+    }
   });
 
   document.getElementById("year").textContent = new Date().getFullYear();
