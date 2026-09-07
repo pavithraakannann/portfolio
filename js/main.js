@@ -5,7 +5,6 @@
   const themeToggle = document.getElementById("themeToggle");
   const root = document.documentElement;
   const storedTheme = localStorage.getItem("theme");
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
   const applyTheme = (theme) => {
     root.setAttribute("data-bs-theme", theme);
@@ -14,7 +13,7 @@
       : '<i class="bi bi-moon-stars-fill"></i>';
   };
 
-  applyTheme(storedTheme || (prefersDark ? "dark" : "light"));
+  applyTheme(storedTheme || "dark");
 
   themeToggle.addEventListener("click", () => {
     const next = root.getAttribute("data-bs-theme") === "dark" ? "light" : "dark";
@@ -92,4 +91,17 @@
   });
 
   document.getElementById("year").textContent = new Date().getFullYear();
+
+  // Reveal on scroll
+  const revealTargets = document.querySelectorAll("section .card, .timeline-item, .section-title");
+  revealTargets.forEach((el) => el.classList.add("reveal"));
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("in");
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  revealTargets.forEach((el) => observer.observe(el));
 })();
