@@ -130,7 +130,7 @@ section { scroll-margin-top: 84px; }
 }
 
 /* Hero */
-.hero { min-height: 100vh; padding-top: 84px; position: relative; overflow: hidden; }
+.hero { min-height: min(88vh, 760px); padding: 84px 0 2rem; position: relative; overflow: hidden; }
 
 .hero::before {
   content: "";
